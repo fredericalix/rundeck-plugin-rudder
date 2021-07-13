@@ -25,3 +25,27 @@ jobs:
       run: mvn dependency:resolve
     - name: Build with Maven
       run: mvn -B package --file pom.xml -X
+  release:
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+      - name: Upload Release Asset
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: target/rundeck-rudder-nodes-plugin-2.0-SNAPSHOT.jar
+          asset_name: rundeck-rudder-nodes-plugin-2.0-SNAPSHOT.jar
+          asset_content_type: application/java-archive
